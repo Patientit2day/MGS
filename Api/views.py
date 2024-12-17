@@ -14,6 +14,7 @@ from rest_framework.permissions import AllowAny
 from .serializers import ClientSerializer,CustomUserSerializer
 from  django_filters import rest_framework as filters
 from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ValidationError
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
@@ -40,6 +41,14 @@ class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ClientFilter
+   
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except ValidationError as e:
+            return Response({"errors": e.messages}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
